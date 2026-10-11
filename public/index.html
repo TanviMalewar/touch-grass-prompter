@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Touch Grass Prompter</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background:#f1f8e9; color:#1b3a1b;
+           max-width:520px; margin:0 auto; padding:24px; }
+    h1 { font-size:1.8rem; }
+    label { display:block; margin-top:16px; font-weight:600; }
+    select, input { width:100%; padding:12px; font-size:1.1rem; margin-top:6px;
+                    border:2px solid #7cb342; border-radius:8px; }
+    button { width:100%; margin-top:24px; padding:16px; font-size:1.2rem;
+             background:#2e7d32; color:white; border:none; border-radius:10px; cursor:pointer; }
+    button:disabled { background:#9ccc65; }
+    #result { margin-top:24px; padding:18px; background:white; border-radius:10px;
+              font-size:1.15rem; line-height:1.5; display:none; white-space:pre-wrap; }
+    small { display:block; margin-top:20px; color:#558b2f; }
+  </style>
+</head>
+<body>
+  <h1>🌿 Touch Grass Prompter</h1>
+  <p>Tell me your situation. I'll give you a mission. Then put the screen away.</p>
+
+  <label for="weather">Weather</label>
+  <select id="weather">
+    <option>sunny</option><option>cloudy</option><option>light rain</option>
+    <option>hot and humid</option><option>cool evening</option>
+  </select>
+
+  <label for="minutes">Minutes available</label>
+  <input id="minutes" type="number" value="15" min="5" max="120" />
+
+  <label for="mood">Mood</label>
+  <select id="mood">
+    <option>stressed</option><option>bored</option><option>tired</option>
+    <option>restless</option><option>curious</option>
+  </select>
+
+  <button id="go">Give me a mission</button>
+  <div id="result"></div>
+  <small>Runs 100% locally with Gemma via Ollama. No internet, no data sent anywhere.</small>
+
+  <script>
+    const btn = document.getElementById("go");
+    const out = document.getElementById("result");
+
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "Thinking...";
+      out.style.display = "none";
+      const started = performance.now();
+
+      const res = await fetch("/mission", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weather: document.getElementById("weather").value,
+          minutes: document.getElementById("minutes").value,
+          mood: document.getElementById("mood").value,
+        }),
+      });
+      const data = await res.json();
+      const secs = ((performance.now() - started) / 1000).toFixed(1);
+
+      out.textContent = data.mission + "\n\n⏱ " + secs + "s, generated locally";
+      out.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Give me a mission";
+    });
+  </script>
+</body>
+</html>
